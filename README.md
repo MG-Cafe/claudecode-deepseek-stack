@@ -26,7 +26,7 @@ chmod 600 ~/.config/mg-deepseek/key.env
 source ~/.config/mg-deepseek/key.env
 ```
 
-Mode 600 = only your user can read it. Don't paste it on camera or commit it.
+
 
 ### 3. Run Claude Code with DeepSeek
 
