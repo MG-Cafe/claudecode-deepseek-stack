@@ -1,6 +1,6 @@
 # Make Claude Code Free with DeepSeek V4
 
-Replace Anthropic's $200/month Claude Code billing with DeepSeek V4 for **~$7/month**. Same Claude Code CLI you already use. Two environment variables. No third-party tool.
+Replace Anthropic's  Claude Code billing with DeepSeek V4 for. Same Claude Code CLI you already use. Two environment variables. No third-party tool.
 
 > **Live-tested April 2026** — same 3D Three.js prompt: Anthropic Opus 4.7 = **$1.14**, DeepSeek V4 Flash = **$0.012**. **95× cheaper**, both produce working playable demos.
 
