@@ -7,16 +7,21 @@ Routes Claude Code through DeepSeek V4 instead of Anthropic — same UI, same sk
 
 ## Quick Launch (after setup)
 
+| Command | Alias | Model | Cost tier |
+|---------|-------|-------|-----------|
+| `ds-pro` | `dsp` | DeepSeek v4-pro | Opus-equivalent, ~30x cheaper |
+| `ds-flash` | `dsf` | DeepSeek v4-flash | Haiku-equivalent, ~60x cheaper |
+| `cs` | — | Auto (Sonnet or ds-pro) | Throttle-aware smart default |
+| `claude-opus` | — | Opus 4.6 or ds-pro | Throttle-aware, no 4.7 |
+| `claude-sonnet` | — | Sonnet 4.6 | Always Anthropic |
+
 ```powershell
-# Start a full DeepSeek v4-pro session (Opus-equivalent, all subagents inherit routing)
-ds-pro
-
-# Start a DeepSeek v4-flash session (Haiku-equivalent, cheapest)
-ds-flash
-
-# Smart default: auto-routes to DeepSeek when weekly Anthropic spend > $700
-cs
+dsp    # DeepSeek v4-pro session
+dsf    # DeepSeek v4-flash session
+cs     # smart default
 ```
+
+**How to confirm you're on DeepSeek:** The Claude Code header shows `API Usage Billing` for DeepSeek sessions and `Claude Max` (or your plan name) for Anthropic sessions. The model name displayed (`Opus 4.6`) is what Claude Code uses for client-side validation — the actual inference runs on DeepSeek's backend.
 
 ---
 
