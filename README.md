@@ -1,9 +1,22 @@
 # Make Claude Code Free/Cheaper with DeepSeek V4
 
+Routes Claude Code through DeepSeek V4 instead of Anthropic — same UI, same skills, same workflow. ~$7/week vs $200+.
 
-This guide routes Claude Code's API calls through **DeepSeek V4 instead of Anthropic** — same Claude Code UI, same skills, same workflow.
+**Windows/PowerShell users:** see [docs/POWERSHELL-SETUP.md](docs/POWERSHELL-SETUP.md) for the full setup including throttle-aware session launchers.
+**Subagent routing:** see [docs/SUBAGENT-MAPPING.md](docs/SUBAGENT-MAPPING.md) to map your agent tiers to DeepSeek models.
 
+## Quick Launch (after setup)
 
+```powershell
+# Start a full DeepSeek v4-pro session (Opus-equivalent, all subagents inherit routing)
+ds-pro
+
+# Start a DeepSeek v4-flash session (Haiku-equivalent, cheapest)
+ds-flash
+
+# Smart default: auto-routes to DeepSeek when weekly Anthropic spend > $700
+cs
+```
 
 ---
 
@@ -113,9 +126,9 @@ Claude Code respects two configuration keys: `ANTHROPIC_BASE_URL` (where to send
 
 ## Notes & troubleshooting
 
-**Use `--model sonnet` or `--model opus`** — Claude Code validates model names against an Anthropic allowlist. The DeepSeek compat endpoint maps the alias server-side (sonnet → DeepSeek V4 Flash by default). You **cannot** pass `--model deepseek-v4-pro` directly; Claude Code rejects it.
+**Model names:** Both `--model deepseek-v4-pro` and `--model deepseek-v4-flash` work directly. The original Claude model aliases (`sonnet`, `opus`) also work — DeepSeek maps them server-side. Use the explicit DeepSeek names for predictable tier routing.
 
-**Want DeepSeek V4 Pro specifically?** Pro uses chain-of-thought reasoning and is ~5× slower than Flash for typical coding tasks. For most coding, Flash is the right pick. If you specifically need Pro, call DeepSeek's API directly via curl or Python (bypasses Claude Code's allowlist).
+**v4-pro vs v4-flash:** Pro is the reasoning tier (Opus-equivalent), Flash is the fast/cheap tier (Haiku-equivalent). For most coding tasks, Flash is fine. Use Pro for planning, architecture, and complex reasoning.
 
 **`Auth conflict` warning when running interactively?** That means Claude Code sees both an env token and a managed login. The `--bare` flag fixes it by ignoring OAuth/keychain — make sure it's in your command.
 
