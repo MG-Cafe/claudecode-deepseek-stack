@@ -1,9 +1,28 @@
 # Make Claude Code Free/Cheaper with DeepSeek V4
 
+Routes Claude Code through DeepSeek V4 instead of Anthropic — same UI, same skills, same workflow. ~$7/week vs $200+.
 
-This guide routes Claude Code's API calls through **DeepSeek V4 instead of Anthropic** — same Claude Code UI, same skills, same workflow.
+**Windows/PowerShell users:** see [docs/POWERSHELL-SETUP.md](docs/POWERSHELL-SETUP.md) for the full setup including throttle-aware session launchers.
+**Subagent routing:** see [docs/SUBAGENT-MAPPING.md](docs/SUBAGENT-MAPPING.md) to map your agent tiers to DeepSeek models.
+**Tool use & subagents:** see [docs/TOOL-USE-GUIDE.md](docs/TOOL-USE-GUIDE.md) for what works, what breaks, and how to fix subagent spawning on DeepSeek.
 
+## Quick Launch (after setup)
 
+| Command | Alias | Model | Cost tier |
+|---------|-------|-------|-----------|
+| `ds-pro` | `dsp` | DeepSeek v4-pro | Opus-equivalent, ~30x cheaper |
+| `ds-flash` | `dsf` | DeepSeek v4-flash | Haiku-equivalent, ~60x cheaper |
+| `cs` | — | Auto (Sonnet or ds-pro) | Throttle-aware smart default |
+| `claude-opus` | — | Opus 4.6 or ds-pro | Throttle-aware, no 4.7 |
+| `claude-sonnet` | — | Sonnet 4.6 | Always Anthropic |
+
+```powershell
+dsp    # DeepSeek v4-pro session
+dsf    # DeepSeek v4-flash session
+cs     # smart default
+```
+
+**How to confirm you're on DeepSeek:** The Claude Code header shows `API Usage Billing` for DeepSeek sessions and `Claude Max` (or your plan name) for Anthropic sessions. The model name displayed (`Opus 4.6`) is what Claude Code uses for client-side validation — the actual inference runs on DeepSeek's backend.
 
 ---
 
@@ -111,11 +130,26 @@ Claude Code respects two configuration keys: `ANTHROPIC_BASE_URL` (where to send
 
 ---
 
+## Tool use & subagents
+
+DeepSeek's Anthropic-compatible endpoint supports tool use (function calling), but with caveats that affect subagent spawning. The critical issue: **thinking blocks must be round-tripped** in multi-turn tool conversations, or DeepSeek returns HTTP 400 errors mid-conversation.
+
+See [docs/TOOL-USE-GUIDE.md](docs/TOOL-USE-GUIDE.md) for the full breakdown of what works, what breaks, and recommended agent configurations.
+
+Quick summary:
+- Basic tool use (Read, Write, Bash, Grep) works on both v4-pro and v4-flash
+- **Agent tool (subagent spawning) requires system prompt injection** — DeepSeek doesn't natively know how to use Claude Code's Agent tool. The `config/agent-boost-prompt.md` file teaches it. Launchers inject this automatically via `--append-system-prompt-file`
+- `is_error` on tool results is ignored — prefix error content with `ERROR:` instead
+- No image/document/multimodal support — pin browser automation agents to Anthropic
+- Subagents inherit env vars from parent session automatically
+
+---
+
 ## Notes & troubleshooting
 
-**Use `--model sonnet` or `--model opus`** — Claude Code validates model names against an Anthropic allowlist. The DeepSeek compat endpoint maps the alias server-side (sonnet → DeepSeek V4 Flash by default). You **cannot** pass `--model deepseek-v4-pro` directly; Claude Code rejects it.
+**Model names:** Both `--model claude-opus-4-6` and `--model claude-haiku-4-5-20251001` work directly. The original Claude model aliases (`sonnet`, `opus`) also work — DeepSeek maps them server-side. Use the explicit DeepSeek names for predictable tier routing.
 
-**Want DeepSeek V4 Pro specifically?** Pro uses chain-of-thought reasoning and is ~5× slower than Flash for typical coding tasks. For most coding, Flash is the right pick. If you specifically need Pro, call DeepSeek's API directly via curl or Python (bypasses Claude Code's allowlist).
+**v4-pro vs v4-flash:** Pro is the reasoning tier (Opus-equivalent), Flash is the fast/cheap tier (Haiku-equivalent). For most coding tasks, Flash is fine. Use Pro for planning, architecture, and complex reasoning.
 
 **`Auth conflict` warning when running interactively?** That means Claude Code sees both an env token and a managed login. The `--bare` flag fixes it by ignoring OAuth/keychain — make sure it's in your command.
 
