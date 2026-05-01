@@ -36,13 +36,23 @@ Save both to `~/.config/mg-deepseek/`. Replace `sk-YOUR-KEY` with your DeepSeek 
 
 **`deepseek-flash-settings.json`** (v4-flash, Haiku equivalent): same structure, same key.
 
-## 3. Install ccusage
+## 3. Install Agent Boost Prompt
+
+Copy the agent boost prompt to your config directory. This injects system prompt instructions that teach DeepSeek to use Claude Code's Agent tool for multi-file work, parallel research, and context-preserving subagent patterns.
+
+```powershell
+Copy-Item "config\agent-boost-prompt.md" "$env:USERPROFILE\.config\mg-deepseek\agent-boost-prompt.md"
+```
+
+The launcher functions auto-detect this file. If it exists, `--append-system-prompt-file` is added to every DeepSeek session. Delete the file to disable agent boosting. Native Claude sessions are unaffected.
+
+## 4. Install ccusage
 
 ```powershell
 bun install -g ccusage
 ```
 
-## 4. Add to PowerShell Profile
+## 5. Add to PowerShell Profile
 
 Find your profile path: `echo $PROFILE`. Add the following:
 
@@ -63,11 +73,21 @@ function Get-ThrottleStatus {
     return @{ Spend = $spend; Throttled = ($spend -gt $budget) }
 }
 
+$script:AgentBoostPrompt = "$env:USERPROFILE\.config\mg-deepseek\agent-boost-prompt.md"
+
 function ds-pro {
-    claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-pro-settings.json" --model claude-opus-4-6 --dangerously-skip-permissions @args
+    $boostArgs = @()
+    if (Test-Path $script:AgentBoostPrompt) {
+        $boostArgs = @("--append-system-prompt-file", $script:AgentBoostPrompt)
+    }
+    claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-pro-settings.json" --model claude-opus-4-6 --dangerously-skip-permissions @boostArgs @args
 }
 function ds-flash {
-    claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-flash-settings.json" --model claude-haiku-4-5-20251001 --dangerously-skip-permissions @args
+    $boostArgs = @()
+    if (Test-Path $script:AgentBoostPrompt) {
+        $boostArgs = @("--append-system-prompt-file", $script:AgentBoostPrompt)
+    }
+    claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-flash-settings.json" --model claude-haiku-4-5-20251001 --dangerously-skip-permissions @boostArgs @args
 }
 function claude-sonnet {
     claude --model claude-sonnet-4-6 --dangerously-skip-permissions @args
@@ -90,8 +110,16 @@ function cs {
         claude --model claude-sonnet-4-6 --dangerously-skip-permissions @args
     }
 }
-function deepseek-pro   { claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-pro-settings.json" --model claude-opus-4-6 @args }
-function deepseek-flash { claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-flash-settings.json" --model claude-haiku-4-5-20251001 @args }
+function deepseek-pro {
+    $boostArgs = @()
+    if (Test-Path $script:AgentBoostPrompt) { $boostArgs = @("--append-system-prompt-file", $script:AgentBoostPrompt) }
+    claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-pro-settings.json" --model claude-opus-4-6 @boostArgs @args
+}
+function deepseek-flash {
+    $boostArgs = @()
+    if (Test-Path $script:AgentBoostPrompt) { $boostArgs = @("--append-system-prompt-file", $script:AgentBoostPrompt) }
+    claude --bare --settings "$env:USERPROFILE\.config\mg-deepseek\deepseek-flash-settings.json" --model claude-haiku-4-5-20251001 @boostArgs @args
+}
 function rotate-deepseek-key {
     param([string]$NewKey)
     $files = @(
@@ -115,7 +143,7 @@ function usage {
 }
 ```
 
-## 5. Verify
+## 6. Verify
 
 ```powershell
 . $PROFILE
@@ -124,7 +152,7 @@ ds-flash -p "say: works"
 ds-pro -p "say: works"
 ```
 
-## Rotate Key
+## 7. Rotate Key
 
 ```powershell
 rotate-deepseek-key sk-YOURNEWKEY

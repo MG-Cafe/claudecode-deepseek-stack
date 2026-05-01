@@ -138,7 +138,7 @@ See [docs/TOOL-USE-GUIDE.md](docs/TOOL-USE-GUIDE.md) for the full breakdown of w
 
 Quick summary:
 - Basic tool use (Read, Write, Bash, Grep) works on both v4-pro and v4-flash
-- Multi-turn tool loops with thinking mode enabled will fail unless thinking blocks are preserved
+- **Agent tool (subagent spawning) requires system prompt injection** — DeepSeek doesn't natively know how to use Claude Code's Agent tool. The `config/agent-boost-prompt.md` file teaches it. Launchers inject this automatically via `--append-system-prompt-file`
 - `is_error` on tool results is ignored — prefix error content with `ERROR:` instead
 - No image/document/multimodal support — pin browser automation agents to Anthropic
 - Subagents inherit env vars from parent session automatically
