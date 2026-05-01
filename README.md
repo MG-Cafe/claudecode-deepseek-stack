@@ -4,6 +4,7 @@ Routes Claude Code through DeepSeek V4 instead of Anthropic — same UI, same sk
 
 **Windows/PowerShell users:** see [docs/POWERSHELL-SETUP.md](docs/POWERSHELL-SETUP.md) for the full setup including throttle-aware session launchers.
 **Subagent routing:** see [docs/SUBAGENT-MAPPING.md](docs/SUBAGENT-MAPPING.md) to map your agent tiers to DeepSeek models.
+**Tool use & subagents:** see [docs/TOOL-USE-GUIDE.md](docs/TOOL-USE-GUIDE.md) for what works, what breaks, and how to fix subagent spawning on DeepSeek.
 
 ## Quick Launch (after setup)
 
@@ -126,6 +127,21 @@ Two commands, two backends, side-by-side in your shell history.
 ## How it works (one paragraph)
 
 Claude Code respects two configuration keys: `ANTHROPIC_BASE_URL` (where to send the API request) and `ANTHROPIC_AUTH_TOKEN` / `ANTHROPIC_API_KEY` (the auth header). DeepSeek exposes an Anthropic-compatible endpoint at `https://api.deepseek.com/anthropic` that speaks the same JSON dialect Claude expects. By providing those keys via `--settings` (which overrides the user-level `~/.claude/settings.json`), you can route a single `claude` invocation to DeepSeek without touching any global config. The `--bare` flag is required because OAuth keychain and auto-detected providers (Vertex AI, AWS Bedrock, Anthropic API key) otherwise win the precedence fight against the env settings.
+
+---
+
+## Tool use & subagents
+
+DeepSeek's Anthropic-compatible endpoint supports tool use (function calling), but with caveats that affect subagent spawning. The critical issue: **thinking blocks must be round-tripped** in multi-turn tool conversations, or DeepSeek returns HTTP 400 errors mid-conversation.
+
+See [docs/TOOL-USE-GUIDE.md](docs/TOOL-USE-GUIDE.md) for the full breakdown of what works, what breaks, and recommended agent configurations.
+
+Quick summary:
+- Basic tool use (Read, Write, Bash, Grep) works on both v4-pro and v4-flash
+- Multi-turn tool loops with thinking mode enabled will fail unless thinking blocks are preserved
+- `is_error` on tool results is ignored — prefix error content with `ERROR:` instead
+- No image/document/multimodal support — pin browser automation agents to Anthropic
+- Subagents inherit env vars from parent session automatically
 
 ---
 

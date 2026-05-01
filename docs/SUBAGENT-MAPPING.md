@@ -90,6 +90,33 @@ env:
 
 This overrides the session env var for that agent only.
 
+## Tool Use Limitations in DeepSeek Sessions
+
+Subagent tool use works but has important caveats. See [TOOL-USE-GUIDE.md](TOOL-USE-GUIDE.md) for the full breakdown.
+
+**Key issues affecting subagents:**
+
+1. **Thinking block round-trip** — DeepSeek requires thinking content blocks passed back in subsequent requests during multi-turn tool conversations. If Claude Code strips these, subagent tool loops will fail with HTTP 400. This is the primary cause of "can't invoke subagents" errors.
+
+2. **`is_error` ignored** — Tool failures aren't signaled to the model. Subagents may proceed on bad data after a tool error instead of retrying.
+
+3. **No multimodal** — Agents that use screenshots or document reading must be pinned to Anthropic.
+
+**Recommended pinning for complex agents:**
+
+```yaml
+---
+name: task-orchestrator
+model: claude-sonnet-4-6
+env:
+  ANTHROPIC_BASE_URL: ""  # force Anthropic for multi-step orchestration
+---
+```
+
+Simple agents (smart-searcher, file-only operations) work fine on DeepSeek without pinning.
+
+---
+
 ## Setting Your Budget Threshold
 
 Edit `$budget` in `Get-ThrottleStatus` inside your PowerShell profile. Rule of thumb: 80% of your weekly Anthropic spend cap. Leaves headroom for sessions that genuinely need Anthropic (voice work, production copy, anything requiring full Claude fidelity).
